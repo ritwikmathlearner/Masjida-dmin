@@ -1,0 +1,5 @@
+Flask
+pymongo[srv]
+Flask-Cors
+python-dotenv
+bcrypt
