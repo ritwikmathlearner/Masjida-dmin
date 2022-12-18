@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        table {
+          font-family: Arial, Helvetica, sans-serif;
+          border-collapse: collapse;
+          width: 50%;
+          margin: auto;
+        }
+        
+        table td, table th {
+          border: 1px solid #ddd;
+          padding: 8px;
+        }
+        
+        table tr:nth-child(even){background-color: #f2f2f2;}
+        
+        table tr:hover {background-color: #ddd;}
+        
+        table th {
+          padding-top: 12px;
+          padding-bottom: 12px;
+          text-align: left;
+          background-color: #04AA6D;
+          color: white;
+        }
+        .center-design {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        </style>
+</head>
+<body>
+    <div class="center-design">
+        <h1>Admin Dashboard</h1>
+    </div>
+    <div class="date-filter">
+        <form action="/" method="get" enctype="multipart/form-data" id="form">
+            <input type="date" name="start_date" id="start_date" value="{{start_date}}" onchange="setminEndDate()" required>
+            <input type="date" name="end_date" id="end_date" value="{{end_date}}" onchange="setmaxStartDate()" required>
+            {% if start_date and end_date %}
+                <a href="/">Reset</a>
+            {% endif %}
+            <button type="submit">Search</button>
+        </form>
+    </div>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Login Date Time</th>
+        </tr>
+        {% for user in users %}
+            <tr>
+                <td>{{ user['name'] }}</td>
+                <td>{{ user['email'] }}</td>
+                <td>{{ user['active']['login_time'].strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <script>
+        var today = new Date();
+        var dd = today.getDate();
+        var mm = today.getMonth() + 1; //January is 0!
+        var yyyy = today.getFullYear();
+
+        if (dd < 10) {
+        dd = '0' + dd;
+        }
+
+        if (mm < 10) {
+        mm = '0' + mm;
+        } 
+            
+        today = yyyy + '-' + mm + '-' + dd;
+        document.getElementById("end_date").setAttribute("max", today);
+        document.getElementById("start_date").setAttribute("max", today);
+
+        function setmaxStartDate() {
+            end_date = document.getElementById("end_date").value
+            document.getElementById("start_date").setAttribute("max", end_date);
+        }
+
+        function setminEndDate() {
+            start_date = document.getElementById("start_date").value
+            document.getElementById("end_date").setAttribute("min", start_date);
+        }
+    </script>
+</body>
+</html>

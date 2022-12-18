@@ -3,3 +3,5 @@ pymongo[srv]
 Flask-Cors
 python-dotenv
 bcrypt
+gunicorn
+Flask-Mail

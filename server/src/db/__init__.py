@@ -14,7 +14,6 @@ class DB:
         if self.__client is None:
             connection_str: str = os.getenv("MONGO_URL")
             self.__client = MongoClient(connection_str)
-        print(self.__client)
     
     def db(self):
         return self.__client.get_default_database()

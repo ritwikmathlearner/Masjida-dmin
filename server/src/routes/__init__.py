@@ -1,7 +1,6 @@
-import json
-from flask import Flask
-from bson import json_util
+from flask import Flask, request
 from src.controller.users import UserController
+from src.controller.view import ViewController
 
 class Route:
     __app: Flask
@@ -10,10 +9,10 @@ class Route:
         self.__app = app
     
     def load(self):
-        @self.__app.route('/')
+        @self.__app.route('/', methods=['GET', 'POST'])
         def index():
-            return UserController().index()
-        
+            return ViewController().dashboard()
+ 
         @self.__app.route('/register', methods=['POST'])
         def register():
             return UserController().create()
@@ -21,6 +20,10 @@ class Route:
         @self.__app.route('/login', methods=['POST'])
         def login():
             return UserController().login()
+        
+        @self.__app.route('/logout', methods=['POST'])
+        def logout():
+            return UserController().logout()
         
         @self.__app.route('/verify', methods=['POST'])
         def verify_otp():

@@ -2,9 +2,12 @@ import json
 import bcrypt
 import os
 import random
+import datetime
 from flask import request
 from bson import json_util
 from src.model.user import UserModel
+from src.model.activity import ActivityModel
+from src.services.mail import mailService
 
 class UserController:
     __model = None
@@ -26,6 +29,9 @@ class UserController:
         self.__body['password'] = bcrypt.hashpw(bytes(self.__body.get('password', '12345678'), 'utf-8'), salt)
         self.__body['verification_otp'] = random.randint(1000,9999)
         data = self.__model.create(self.__body)
+
+        mailService.messageBody("OTP Verification", self.__body['email'], f"OTP: {self.__body['verification_otp']}").send()
+
         return {"message": "Hello", "data": {"inserted_id": json.loads(json_util.dumps(data))}}
     
     def login(self):
@@ -34,11 +40,55 @@ class UserController:
             return {"message": "Email is not registered", "data": None}
         elif user.get('verification_otp', None):
             return {"message": "Email is not verified", "data": None}
+        elif self.__body.get("request_time", None) is None:
+            return {"message": "Time is not present", "data": None}
 
-        if  bcrypt.checkpw(bytes(self.__body.get('password'), 'utf-8'), user.get('password')):
+        filter_data = {
+            "activity": "login",
+            "ref_id": user["_id"],
+            "logout_time": {"$exists": False}
+        }
+
+        update_date = {
+            "$set": {
+                "logout_time": datetime.datetime.now()
+            }
+        }
+
+        ActivityModel().update(filter_data, update_date)
+
+        activity_data = {
+            "activity": "login",
+            "ref_id": user["_id"],
+            "login_time": datetime.datetime.now(),
+            "requested_time": self.__body["request_time"]
+        }
+
+        ActivityModel().create(activity_data)
+
+        if  self.__body.get('password', None) is not None and bcrypt.checkpw(bytes(self.__body.get('password'), 'utf-8'), user.get('password')):
             return {"message": "Hello", "data": {"inserted_id": json.loads(json_util.dumps(user))}}
         else:
             return {"message": "Password mismatch", "data": None}
+    
+    def logout(self):
+        user = self.__model.get_single(self.__body['email'])
+        if user is None:
+            return {"message": "Email is not registered", "data": None}
+
+        filter_data = {
+            "activity": "login",
+            "ref_id": user["_id"]
+        }
+        
+        activity_data = {
+            "$set": {
+                "logout_time": datetime.datetime.now()
+            }
+        }
+
+        ActivityModel().update(filter_data, activity_data)
+        return {"message": "Logout Successful", "data": True}
     
     def verify(self):
         user = self.__model.get_single(self.__body['email'])
@@ -69,6 +119,8 @@ class UserController:
                 "verification_otp": otp
             }
         }
+
+        mailService.messageBody("OTP Verification", self.__body['email'], f"OTP: {otp}").send()
 
         self.__model.update(query, data)
         return {"message": "Email sent", "data": otp}
