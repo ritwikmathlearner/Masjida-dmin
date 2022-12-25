@@ -10,7 +10,10 @@ load_dotenv()
 
 DB().connect()
 Route(app).load()
-app.config['TESTING'] = False
+app.config.update(
+    TESTING=False,
+    SALT='$2b$12$U6ENDJE0edHn3Z4g6Cex/u'
+)
 mailService.configure(app)
 
 
