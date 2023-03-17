@@ -1,68 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <style>
+        h2 {
+            width: 100%;
+            text-align: center;
+            margin-top: 3rem;
+        }
+        #myTable_wrapper, #myTable2_wrapper {
+            width: 50%;
+            margin: auto;
+        }
         table {
-          font-family: Arial, Helvetica, sans-serif;
-          border-collapse: collapse;
-          width: 50%;
-          margin: auto;
+            font-family: Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
         }
-        
-        table td, table th {
-          border: 1px solid #ddd;
-          padding: 8px;
-        }
-        
-        table tr:nth-child(even){background-color: #f2f2f2;}
-        
-        table tr:hover {background-color: #ddd;}
-        
+
+        table td,
         table th {
-          padding-top: 12px;
-          padding-bottom: 12px;
-          text-align: left;
-          background-color: #04AA6D;
-          color: white;
+            border: 1px solid #ddd;
+            padding: 8px;
         }
+
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table tr:hover {
+            background-color: #ddd;
+        }
+
+        table th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #04AA6D;
+            color: white;
+        }
+
         .center-design {
             text-align: center;
             margin-bottom: 3rem;
         }
-        </style>
+
+        .date-filter {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />
 </head>
+
 <body>
     <div class="center-design">
         <h1>Admin Dashboard</h1>
     </div>
     <div class="date-filter">
         <form action="/" method="get" enctype="multipart/form-data" id="form">
-            <input type="date" name="start_date" id="start_date" value="{{start_date}}" onchange="setminEndDate()" required>
+            <input type="date" name="start_date" id="start_date" value="{{start_date}}" onchange="setminEndDate()"
+                required>
+            &nbsp;
             <input type="date" name="end_date" id="end_date" value="{{end_date}}" onchange="setmaxStartDate()" required>
             {% if start_date and end_date %}
-                <a href="/">Reset</a>
+            <a href="/">Reset</a>
             {% endif %}
             <button type="submit">Search</button>
         </form>
     </div>
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Login Date Time</th>
-        </tr>
-        {% for user in users %}
+    {% if not start_date and not end_date %}
+    <h2>Currenty Loggedin Users</h2>
+    {% else %}
+    <h2>Login Session Details</h2>
+    {% endif %}
+    <table id="myTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Login Date Time</th>
+                {% if start_date and end_date %}
+                <th>Logout Date Time</th>
+                <th>Spent Time <br /> (Minutes)</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
             <tr>
                 <td>{{ user['name'] }}</td>
                 <td>{{ user['email'] }}</td>
                 <td>{{ user['active']['login_time'].strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                {% if start_date and end_date %}
+                <td>{{ user['active']['logout_time'].strftime('%Y-%m-%d %H:%M:%S') if user.get('active',
+                    {}).get('logout_time', False) else '' }}</td>
+                <td>{{ (user['active']['logout_time']-user['active']['login_time']).total_seconds()//60 if
+                    user.get('active', {}).get('logout_time', False) else 'Still Loggedin' }}</td>
+                {% endif %}
             </tr>
-        {% endfor %}
+            {% endfor %}
+        </tbody>
     </table>
+    {% if not start_date and not end_date %}
+    <h2>Total Number of Prayers</h2>
+    <table id="myTable2">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Total Prayer</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prayer in prayers %}
+            <tr>
+                <td>{{ prayer['name'] }}</td>
+                <td>{{ prayer['email'] }}</td>
+                <td>{{ prayer['count'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"
+        integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
     <script>
         var today = new Date();
         var dd = today.getDate();
@@ -70,13 +137,13 @@
         var yyyy = today.getFullYear();
 
         if (dd < 10) {
-        dd = '0' + dd;
+            dd = '0' + dd;
         }
 
         if (mm < 10) {
-        mm = '0' + mm;
-        } 
-            
+            mm = '0' + mm;
+        }
+
         today = yyyy + '-' + mm + '-' + dd;
         document.getElementById("end_date").setAttribute("max", today);
         document.getElementById("start_date").setAttribute("max", today);
@@ -90,6 +157,19 @@
             start_date = document.getElementById("start_date").value
             document.getElementById("end_date").setAttribute("min", start_date);
         }
+        window.addEventListener("load", () => {
+            $(document).ready(function () {
+                $('#myTable').DataTable({
+                    order: [[2, 'desc']]
+                });
+            });
+            $(document).ready(function () {
+                $('#myTable2').DataTable({
+                    order: [[2, 'desc']]
+                });
+            });
+        })
     </script>
 </body>
+
 </html>

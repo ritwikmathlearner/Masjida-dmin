@@ -21,7 +21,7 @@ python3 -m venv venv
 pip3 install -r requirements.txt
 
 # Create .env file
-cp .env-example .env
+# cp .env-example .env
 
 echo "Start server?"
 read answer

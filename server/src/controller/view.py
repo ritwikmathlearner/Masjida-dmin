@@ -2,6 +2,7 @@ import json
 from bson import json_util
 from flask import request, render_template
 from src.model.user import UserModel
+from src.model.activity import ActivityModel
 
 class ViewController:
     __model = None
@@ -13,8 +14,9 @@ class ViewController:
     def dashboard(self):
         try:
             if request.args.get('start_date', None) is None and request.args.get('end_date', None) is None:
-                data = list(UserModel().loggedinUsers())
-                return render_template('index.html', users=data)
+                loggedinUsers = list(UserModel().loggedinUsers())
+                totalPrayer = list(ActivityModel().totalPrayer())
+                return render_template('index.html', users=loggedinUsers, prayers=totalPrayer)
             else:
                 data = list(UserModel().loggedinUsersFilter(request.args.get('start_date', None), request.args.get('end_date', None)))
                 request.args.get('start_date', None)

@@ -41,3 +41,14 @@ class Route:
         def otp(email):
             return UserController().otp(email)
             
+        @self.__app.route('/active/<login_id>')
+        def active(login_id):
+            return UserController().active(login_id)
+
+        @self.__app.route('/prayer-given/<login_id>')
+        def prayerGiven(login_id):
+            return UserController().prayerGiven(login_id)
+        
+        @self.__app.route('/check')
+        def check():
+            return UserController().check()

@@ -3,11 +3,14 @@ import bcrypt
 import os
 import random
 import datetime
+import time
 from flask import request
 from bson import json_util
 from src.model.user import UserModel
 from src.model.activity import ActivityModel
 from src.services.mail import mailService
+from src.services.encoder import MongoJSONEncoder
+from bson import ObjectId
 
 class UserController:
     __model = None
@@ -19,7 +22,7 @@ class UserController:
     
     def index(self):
         data = self.__model.index()
-        return {"message": "Hello", "data": {"users": json.loads(json_util.dumps(data))}}
+        return {"message": "Hello", "data": {"users": json.loads(MongoJSONEncoder().encode(data))}}
     
     def create(self):
         user = self.__model.get_single(self.__body['email'])
@@ -32,7 +35,7 @@ class UserController:
 
         mailService.messageBody("OTP Verification", self.__body['email'], f"OTP: {self.__body['verification_otp']}").send()
 
-        return {"message": "Hello", "data": {"inserted_id": json.loads(json_util.dumps(data))}}
+        return {"message": "Hello", "data": {"inserted_id": json.loads(MongoJSONEncoder().encode(data))}}
     
     def login(self):
         user = self.__model.get_single(self.__body['email'])
@@ -64,10 +67,12 @@ class UserController:
             "requested_time": self.__body["request_time"]
         }
 
-        ActivityModel().create(activity_data)
+        activity_id = ActivityModel().create(activity_data)
+        user["login_id"] = activity_id
 
         if  self.__body.get('password', None) is not None and bcrypt.checkpw(bytes(self.__body.get('password'), 'utf-8'), user.get('password')):
-            return {"message": "Hello", "data": {"inserted_id": json.loads(json_util.dumps(user))}}
+            del user["password"]
+            return {"message": "Login successful", "data": {"inserted_id": json.loads(MongoJSONEncoder().encode(user))}}
         else:
             return {"message": "Password mismatch", "data": None}
     
@@ -153,3 +158,37 @@ class UserController:
             return {"message": "No verification is pending", "data": None}
         
         return user['verification_otp']
+
+    def active(self, login_id):
+        data = ActivityModel().update(
+            { "_id": ObjectId(login_id)},
+            {
+                "$set": {
+                    "last_active": datetime.datetime.now()
+                }
+            }
+        )
+        if not data:
+            return {"message": "Login id does not exist", "data": None}
+
+        return {"message": "Success", "data": True}
+
+    def prayerGiven(self, login_id):
+        data = ActivityModel().update(
+            { "_id": ObjectId(login_id)},
+            {
+                "$inc": {
+                    "prayer_count": 1
+                }
+            }
+        )
+        if not data:
+            return {"message": "Login id does not exist", "data": None}
+
+        return {"message": "Success", "data": True}
+    
+    def check(self):
+        data = list(ActivityModel().totalPrayer())
+        return {
+            "data": json.loads(MongoJSONEncoder().encode(data))
+        }

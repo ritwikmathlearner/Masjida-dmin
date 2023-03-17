@@ -116,7 +116,8 @@ class UserModel:
                     "$project": {
                         "name": 1,
                         "email": 1,
-                        "active.login_time": 1
+                        "active.login_time": 1,
+                        "active.logout_time": 1
                     }
                 }
             ]
