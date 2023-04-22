@@ -18,7 +18,7 @@ class UserController:
 
     def __init__(self) -> None:
         self.__model = UserModel()
-        self.__body = request.json
+        self.__body = request.method == 'POST' and request.json or None
     
     def index(self):
         data = self.__model.index()
