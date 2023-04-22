@@ -7,15 +7,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <style>
+        body {
+            background-image: url("{{ url_for('static', filename='bg.jpg') }}");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.7);
+            width: 60%;
+            margin: auto;
+            padding: 2rem 0;
+            border-radius: 20px;
+        }
+
         h2 {
             width: 100%;
             text-align: center;
             margin-top: 3rem;
         }
-        #myTable_wrapper, #myTable2_wrapper {
-            width: 50%;
+
+        #myTable_wrapper,
+        #myTable2_wrapper {
+            width: 90%;
             margin: auto;
         }
+
         table {
             font-family: Arial, Helvetica, sans-serif;
             border-collapse: collapse;
@@ -49,84 +68,123 @@
         }
 
         .date-filter {
-            width: 100%;
-            text-align: center;
-            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+
+        input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        a {
+            margin-left: 10px;
+            font-size: 16px;
+            color: #007bff;
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0062cc;
         }
     </style>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.css" />
 </head>
 
 <body>
-    <div class="center-design">
-        <h1>Admin Dashboard</h1>
-    </div>
-    <div class="date-filter">
-        <form action="/" method="get" enctype="multipart/form-data" id="form">
-            <input type="date" name="start_date" id="start_date" value="{{start_date}}" onchange="setminEndDate()"
-                required>
-            &nbsp;
-            <input type="date" name="end_date" id="end_date" value="{{end_date}}" onchange="setmaxStartDate()" required>
-            {% if start_date and end_date %}
-            <a href="/">Reset</a>
-            {% endif %}
-            <button type="submit">Search</button>
-        </form>
-    </div>
-    {% if not start_date and not end_date %}
-    <h2>Currenty Loggedin Users</h2>
-    {% else %}
-    <h2>Login Session Details</h2>
-    {% endif %}
-    <table id="myTable">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Login Date Time</th>
+    <div class="container">
+        <div class="center-design">
+            <h1>Admin Dashboard</h1>
+        </div>
+        <div class="date-filter">
+            <form action="/" method="get" enctype="multipart/form-data" id="form">
+                <input type="date" name="start_date" id="start_date" value="{{start_date}}" onchange="setminEndDate()"
+                    required>
+                &nbsp;
+                <input type="date" name="end_date" id="end_date" value="{{end_date}}" onchange="setmaxStartDate()"
+                    required>
                 {% if start_date and end_date %}
-                <th>Logout Date Time</th>
-                <th>Spent Time <br /> (Minutes)</th>
+                <a href="/">Reset</a>
                 {% endif %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-            <tr>
-                <td>{{ user['name'] }}</td>
-                <td>{{ user['email'] }}</td>
-                <td>{{ user['active']['login_time'].strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                {% if start_date and end_date %}
-                <td>{{ user['active']['logout_time'].strftime('%Y-%m-%d %H:%M:%S') if user.get('active',
-                    {}).get('logout_time', False) else '' }}</td>
-                <td>{{ (user['active']['logout_time']-user['active']['login_time']).total_seconds()//60 if
-                    user.get('active', {}).get('logout_time', False) else 'Still Loggedin' }}</td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% if not start_date and not end_date %}
-    <h2>Total Number of Prayers</h2>
-    <table id="myTable2">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Total Prayer</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for prayer in prayers %}
-            <tr>
-                <td>{{ prayer['name'] }}</td>
-                <td>{{ prayer['email'] }}</td>
-                <td>{{ prayer['count'] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% endif %}
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        {% if not start_date and not end_date %}
+        <h2>Currenty Loggedin Users</h2>
+        {% else %}
+        <h2>Login Session Details</h2>
+        {% endif %}
+        <table id="myTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Login Date Time</th>
+                    {% if start_date and end_date %}
+                    <th>Logout Date Time</th>
+                    <th>Spent Time <br /> (Minutes)</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user['name'] }}</td>
+                    <td>{{ user['email'] }}</td>
+                    <td>{{ user['active']['login_time'].strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    {% if start_date and end_date %}
+                    <td>{{ user['active']['logout_time'].strftime('%Y-%m-%d %H:%M:%S') if user.get('active',
+                        {}).get('logout_time', False) else '' }}</td>
+                    <td>{{ (user['active']['logout_time']-user['active']['login_time']).total_seconds()//60 if
+                        user.get('active', {}).get('logout_time', False) else 'Still Loggedin' }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if not start_date and not end_date %}
+        <h2>Total Number of Prayers</h2>
+        <table id="myTable2">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Total Prayer</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prayer in prayers %}
+                <tr>
+                    <td>{{ prayer['name'] }}</td>
+                    <td>{{ prayer['email'] }}</td>
+                    <td>{{ prayer['count'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"
         integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.js"></script>
