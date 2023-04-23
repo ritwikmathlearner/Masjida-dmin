@@ -3,8 +3,10 @@ from dotenv import load_dotenv
 from src.routes import Route
 from src.db import DB
 from src.services.mail import mailService
+from flask_cors import CORS
 
 app: Flask = Flask(__name__)
+CORS(app)
 
 load_dotenv()
 
