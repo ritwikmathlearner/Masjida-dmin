@@ -10,17 +10,17 @@ class ActivityModel:
         self.__db = DB().db()
         self.__collection = self.__db[self.collection_name]
 
-    def index(self):
-        users = list(self.__collection.find())
-        return users
+    def index(self, filter = {}):
+        activities = list(self.__collection.find(filter))
+        return activities
     
     def create(self, data):
-        new_user_id = self.__collection.insert_one(data).inserted_id
-        return new_user_id
+        new_activity_id = self.__collection.insert_one(data).inserted_id
+        return new_activity_id
     
     def get_single(self, query):
-        user = self.__collection.find_one(query)
-        return user
+        activity = self.__collection.find_one(query)
+        return activity
     
     def revoke_otp(self, email):
         return self.__collection.update_one({
